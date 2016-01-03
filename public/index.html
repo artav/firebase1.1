@@ -1,0 +1,774 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Aito Appointments</title>
+
+    <noscript>
+        <META HTTP-EQUIV="Refresh" CONTENT="0;URL=ShowErrorPage.html">
+    </noscript>
+
+
+    <script type='text/javascript' src="https://cdn.firebase.com/js/client/1.1.1/firebase.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.0/angular.min.js"></script>
+    <script src="https://cdn.firebase.com/libs/angularfire/0.8.0/angularfire.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+
+
+
+    <script type='text/javascript' src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+
+
+
+    <script type='text/javascript' src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
+
+
+    <script type='text/javascript' src="//cdnjs.cloudflare.com/ajax/libs/jquery-serialize-object/2.0.0/jquery.serialize-object.compiled.js"></script>
+
+
+
+    <script type='text/javascript' src="//cdnjs.cloudflare.com/ajax/libs/path.js/0.8.4/path.min.js"></script>
+
+
+    <link rel="stylesheet" href="style.css">
+
+    <style type='text/css'>
+        form {
+            display: none;
+        }
+    </style>
+
+
+
+
+    <script type='text/javascript'>//<![CDATA[
+
+
+
+    var settingsRef;
+    var settings;
+    var settings, interval, duration, startHour, startMin;
+
+
+    window.onload=function(){
+        (function (jQuery, Firebase, Path) {
+            "use strict";
+
+            // the main firebase reference
+            var rootRef = new Firebase('https://boiling-torch-6521.firebaseio.com/');
+            settingsRef = new Firebase('https://boiling-torch-6521.firebaseio.com/settings');
+            var user = "";
+
+            // Get default settings
+
+            settingsRef.once('value', function(snapshot) {
+                console.log(snapshot.val());
+                settings = snapshot.val();
+                interval = settings.interval;
+                duration = settings.duration;
+                startHour = settings.startHour;
+                startMin = settings.startMin;
+                console.log(interval);
+            });
+
+
+
+            // pair our routes to our form elements and controller
+            var routeMap = {
+                '#/': {
+                    form: 'frmLogin',
+                    controller: 'login'
+                },
+                '#/logout': {
+                    form: 'frmLogout',
+                    controller: 'logout'
+                },
+                '#/register': {
+                    form: 'frmRegister',
+                    controller: 'register'
+                },
+                '#/profile': {
+                    form: 'frmProfile',
+                    controller: 'profile',
+                    authRequired: true // must be logged in to get here
+                },
+                '#/appointments': {
+                    form: 'frmAppointments',
+                    controller: 'appointments',
+                    authRequired: true // must be logged in to get here
+                },
+                '#/instructions': {
+                    form: 'frmInstructions',
+                    controller: 'instructions',
+                    authRequired: true // must be logged in to get here
+                }
+            };
+
+            // create the object to store our controllers
+            var controllers = {};
+
+            // store the active form shown on the page
+            var activeForm = null;
+
+            var alertBox = $('#alert');
+
+            function routeTo(route) {
+                window.location.href = '#/' + route;
+            }
+
+            // Handle third party login providers
+            // returns a promise
+            function thirdPartyLogin(provider) {
+                var deferred = $.Deferred();
+
+                rootRef.authWithOAuthPopup(provider, function (err, user) {
+                    if (err) {
+                        deferred.reject(err);
+                    }
+
+                    if (user) {
+                        deferred.resolve(user);
+                    }
+                });
+
+                return deferred.promise();
+            };
+
+            // Handle Email/Password login
+            // returns a promise
+            function authWithPassword(userObj) {
+                var deferred = $.Deferred();
+                console.log(userObj);
+                rootRef.authWithPassword(userObj, function onAuth(err, user) {
+                    if (err) {
+                        deferred.reject(err);
+                    }
+
+                    if (user) {
+                        deferred.resolve(user);
+                    }
+
+                });
+
+                return deferred.promise();
+            }
+
+            // create a user but not login
+            // returns a promsie
+            function createUser(userObj) {
+                var deferred = $.Deferred();
+                rootRef.createUser(userObj, function (err) {
+
+                    if (!err) {
+                        deferred.resolve();
+                    } else {
+                        deferred.reject(err);
+                    }
+
+                });
+
+                return deferred.promise();
+            }
+
+            // Create a user and then login in
+            // returns a promise
+            function createUserAndLogin(userObj) {
+                return createUser(userObj)
+                        .then(function () {
+                            return authWithPassword(userObj);
+                        });
+            }
+
+            // authenticate anonymously
+            // returns a promise
+            function authAnonymously() {
+                var deferred = $.Deferred();
+                rootRef.authAnonymously(function (err, authData) {
+
+                    if (authData) {
+                        deferred.resolve(authData);
+                    }
+
+                    if (err) {
+                        deferred.reject(err);
+                    }
+
+                });
+
+                return deferred.promise();
+            }
+
+            // route to the specified route if sucessful
+            // if there is an error, show the alert
+            function handleAuthResponse(promise, route) {
+                $.when(promise)
+                        .then(function (authData) {
+
+                            // route
+                            routeTo(route);
+
+                        }, function (err) {
+                            console.log(err);
+                            // pop up error
+                            showAlert({
+                                title: err.code,
+                                detail: err.message,
+                                className: 'alert-danger'
+                            });
+
+                        });
+            }
+
+            // options for showing the alert box
+            function showAlert(opts) {
+                var title = opts.title;
+                var detail = opts.detail;
+                var className = 'alert ' + opts.className;
+
+                alertBox.removeClass().addClass(className);
+                alertBox.children('#alert-title').text(title);
+                alertBox.children('#alert-detail').text(detail);
+            }
+
+            /// Controllers
+            ////////////////////////////////////////
+
+            controllers.login = function (form) {
+                document.getElementById("alert").style.visibility = "visible";  //hide the alert box
+                document.getElementById("login").style.visibility = "visible";  //hide the alert box
+                document.getElementById("logout").style.visibility = "hidden";  //hide the alert box
+                document.getElementById("instructions").style.visibility = "hidden";  //hide the alert box
+
+                // Form submission for logging in
+                form.on('submit', function (e) {
+
+                    var userAndPass = $(this).serializeObject();
+                    var loginPromise = authWithPassword(userAndPass);
+                    e.preventDefault();
+
+                    handleAuthResponse(loginPromise, 'appointments');
+
+                });
+
+                // Social buttons
+                form.children('.bt-social').on('click', function (e) {
+
+                    var $currentButton = $(this);
+                    var provider = $currentButton.data('provider');
+                    var socialLoginPromise;
+                    e.preventDefault();
+
+                    socialLoginPromise = thirdPartyLogin(provider);
+                    handleAuthResponse(socialLoginPromise, 'profile');
+
+                });
+
+                form.children('#btAnon').on('click', function (e) {
+                    e.preventDefault();
+                    handleAuthResponse(authAnonymously(), 'profilex');
+                });
+
+            };
+
+            // logout immediately when the controller is invoked
+            controllers.logout = function (form) {
+                rootRef.unauth();
+                document.getElementById("login").style.visibility = "visible";  //hide the alert box
+                document.getElementById("logout").style.visibility = "hidden";  //hide the alert box
+                routeTo('');
+            };
+
+            controllers.register = function (form) {
+
+                // Form submission for registering
+                form.on('submit', function (e) {
+
+                    var userAndPass = $(this).serializeObject();
+                    var loginPromise = createUserAndLogin(userAndPass);
+                    e.preventDefault();
+
+                    handleAuthResponse(loginPromise, 'profile');
+
+                });
+
+            };
+
+            controllers.appointments = function (form) {
+                document.getElementById("alert").style.visibility = "hidden";  //hide the alert box
+                document.getElementById("login").style.visibility = "hidden";  //hide the alert box
+                document.getElementById("logout").style.visibility = "visible";  //hide the alert box
+                document.getElementById("instructions").style.visibility = "visible";  //hide the alert box
+                document.getElementById("appointmentsLi").style.visibility = "hidden";  //hide the alert box
+                // Check the current user
+                var user = rootRef.getAuth();
+                var userRef;
+                var agentsRef = rootRef.child('agents');
+                var suppliersRef = rootRef.child('suppliers');
+                var userType, dbRef, userName;
+
+                // If no current user send to register page
+                if (!user) {
+                    routeTo('login');
+                    return;
+                }
+
+                // Load user info
+                userRef = rootRef.child('users').child(user.uid);
+                userRef.once('value', function (snap) {
+                    var user = snap.val();
+                    if (!user) {
+                        return;
+                    }
+                    // set the fields
+                    $("#userName").text(user.name + " - Your Appointments");
+                    userType = user.type;
+                    userName = user.name;
+                });
+
+                function checkUserType() {  //wait for userType to be populated
+
+                    if(typeof userType !== "undefined" && userName !== "underfined") {
+                        clearInterval(timerVar);
+                        if (userType == "Supplier"){
+                            console.log("using supplier db");
+                            dbRef = new Firebase('https://boiling-torch-6521.firebaseio.com/suppliers/' + userName + '/slots/');
+                            getAppointments();
+                            document.getElementById("bookLink").href = "./bookagents.html";
+                        } else if (userType == "Agent"){
+                            console.log("using agent db");
+                            dbRef = new Firebase('https://boiling-torch-6521.firebaseio.com/agents/' + userName + '/slots/');
+                            getAppointments();
+                            document.getElementById("bookLink").href = "./booksuppliers.html";
+                        }
+                    }
+
+                }
+
+                var timerVar = setInterval(checkUserType,500);
+
+
+                function getAppointments(){
+                    dbRef.on('value', show);
+                }
+                function show(snap) {
+                    var data = snap.val();
+                    var display = [];
+                    //console.log(data);
+
+                    $.each(data, function(i,item){
+                        var time = i;
+                        var booked = item.booked;
+                        var bookedby = item.bookedby;
+                        if (booked == true){
+                            display[i] = bookedby;
+                        }
+                    });
+
+                    //console.log(display);
+
+                    var simplified = "";
+                    for(var i in display) {
+                        simplified = simplified + ( i + " - " + display[i] + "<br />");
+                    }
+
+
+                    document.getElementById("appDetails").innerHTML = simplified;
+
+                }
+
+            };
+
+
+            controllers.instructions = function (form) {
+                document.getElementById("alert").style.visibility = "hidden";  //hide the alert box
+                document.getElementById("login").style.visibility = "hidden";  //hide the alert box
+                document.getElementById("logout").style.visibility = "visible";  //hide the alert box
+                document.getElementById("instructions").style.visibility = "visible";  //hide the alert box
+                document.getElementById("appointmentsLi").style.visibility = "visible";  //hide the alert box
+
+                var user = rootRef.getAuth();
+                var userRef;
+                var agentsRef = rootRef.child('agents');
+                var suppliersRef = rootRef.child('suppliers');
+                var userType, dbRef, userName;
+
+                // If no current user send to register page
+                if (!user) {
+                    routeTo('login');
+                    return;
+                }
+
+                // Load user info
+                userRef = rootRef.child('users').child(user.uid);
+                userRef.once('value', function (snap) {
+                    var user = snap.val();
+                    if (!user) {
+                        return;
+                    }
+                    // set the fields
+                    $("#insName").text("Hi " + user.name);
+                    userType = user.type;
+                    userName = user.name;
+                });
+
+                function checkUserType2() {  //wait for userType to be populated
+
+                    if(typeof userType !== "undefined" && userName !== "underfined") {
+                        clearInterval(timerVar2);
+                        if (userType == "Supplier"){
+                            console.log("using supplier db");
+                            document.getElementById("bookLink").href = "./bookagents.html";
+                        } else if (userType == "Agent"){
+                            console.log("using agent db");
+                            document.getElementById("bookLink").href = "./booksuppliers.html";
+                        }
+                    }
+
+                }
+
+                var timerVar2 = setInterval(checkUserType2,500);
+
+
+
+            };
+
+
+            controllers.profile = function (form) {
+                // Check the current user
+                var user = rootRef.getAuth();
+                var userRef;
+
+                // If no current user send to login page
+                if (!user) {
+                    routeTo('login');
+                    return;
+                }
+
+                // Load user info
+                userRef = rootRef.child('users').child(user.uid);
+                userRef.once('value', function (snap) {
+                    var user = snap.val();
+                    if (!user) {
+                        return;
+                    }
+
+                    // set the fields
+                    form.find('#txtName').val(user.name);
+                    form.find('#userType').val(user.type);
+                });
+
+
+
+
+                // Save user's info to Firebase
+                form.on('submit', function (e) {
+                    e.preventDefault();
+                    var userInfo = $(this).serializeObject();
+
+                    userRef.set(userInfo, function onComplete() {
+
+                        // show the message if write is successful
+                        showAlert({
+                            title: 'Successfully saved!',
+                            detail: 'You are still logged in',
+                            className: 'alert-success'
+                        });
+
+                    });
+
+                    // Setup child Firebase references
+
+                    var agentsRef = rootRef.child('agents');
+                    var suppliersRef = rootRef.child('suppliers');
+
+                    // need to delay because form is async  ??
+
+                    if (userInfo.type == "Agent") {
+                        window.setTimeout(updateAgent(userInfo.name),1000);
+                    }
+                    else if (userInfo.type == "Supplier") {
+                        window.setTimeout(updateSupplier(userInfo.name),1000);
+                    }
+
+                    // Save default AGENT time slots based on global settings
+                        function updateAgent(name){
+                            var numAppointments =  (duration / interval);
+                            var slotsRef = agentsRef.child(name);
+                            slotsRef.set({name: name});
+                            var j = 0;
+                            for (j = 0; j < numAppointments; j++) {
+                                var totalMins = +(startHour * 60) + +startMin;  // '+' before a variable means treat it like a number
+                                var currentTotal = +totalMins + +(j*interval);
+                                var currentHours = Math.floor( currentTotal / 60);
+                                var currentMins = currentTotal % 60;
+                                if (currentMins == 0) currentMins = "00";  // if minutes = 0 then display it as 00
+                                var time = currentHours+":"+currentMins;
+                                var plainTime = "" + currentHours + currentMins;  // save time as a string with no ':'
+                                var plainNumTime = +plainTime; // makes the time a proper number for the key
+                                var appRef = slotsRef.child("slots/"+plainNumTime);
+                                if (plainNumTime >= 1300 && plainNumTime <= 1325){
+                                    appRef.set({
+                                        time: time, plainTime: plainTime, booked: true, bookedby: "BREAK"
+                                    });
+                                }
+                                else {appRef.set({
+                                    time: time, plainTime: plainTime, booked: false, bookedby: ""
+                                });}
+                            }
+                        }
+
+                        function updateSupplier(name){
+                            var numAppointments =  (duration / interval);
+                            var slotsRef = suppliersRef.child(name);
+                            slotsRef.set({name: name});
+                            var k = 0;
+                            for (k = 0; k < numAppointments; k++) {
+                                var totalMins = +(startHour * 60) + +startMin;  // '+' before a variable means treat it like a number
+                                var currentTotal = +totalMins + +(k*interval);
+                                var currentHours = Math.floor( currentTotal / 60);
+                                var currentMins = currentTotal % 60;
+                                if (currentMins == 0) currentMins = "00";  // if minutes = 0 then display it as 00
+                                var time = currentHours+":"+currentMins;
+                                var plainTime = "" + currentHours + currentMins;  // save time as a string with no ':'
+                                var plainNumTime = +plainTime; // makes the time a proper number for the key
+                                var appRef = slotsRef.child("slots/"+plainNumTime);
+                                if (plainNumTime >= 1300 && plainNumTime <= 1325){
+                                    appRef.set({
+                                        time: time, plainTime: plainTime, booked: true, bookedby: "BREAK"
+                                    });
+                                }
+                                else {appRef.set({
+                                    time: time, plainTime: plainTime, booked: false, bookedby: ""
+                                });}
+                            }
+
+                        }
+
+
+                });
+
+            };
+
+            /// Routing
+            ////////////////////////////////////////
+
+            // Handle transitions between routes
+            function transitionRoute(path) {
+                // grab the config object to get the form element and controller
+                var formRoute = routeMap[path];
+                var currentUser = rootRef.getAuth();
+
+                // if authentication is required and there is no
+                // current user then go to the register page and
+                // stop executing
+                if (formRoute.authRequired && !currentUser) {
+                    routeTo('login');
+                    return;
+                }
+
+                // wrap the upcoming form in jQuery
+                var upcomingForm = $('#' + formRoute.form);
+
+                // if there is no active form then make the current one active
+                if (!activeForm) {
+                    activeForm = upcomingForm;
+                }
+
+                // hide old form and show new form
+                activeForm.hide();
+                upcomingForm.show().hide().fadeIn(750);
+
+                // remove any listeners on the soon to be switched form
+                activeForm.off();
+
+                // set the new form as the active form
+                activeForm = upcomingForm;
+
+                // invoke the controller
+                controllers[formRoute.controller](activeForm);
+            }
+
+            // Set up the transitioning of the route
+            function prepRoute() {
+                transitionRoute(this.path);
+            }
+
+
+            /// Routes
+            ///  #/         - Login
+            //   #/logout   - Logut
+            //   #/register - Register
+            //   #/profile  - Profile
+
+            Path.map("#/").to(prepRoute);
+            Path.map("#/logout").to(prepRoute);
+            Path.map("#/register").to(prepRoute);
+            Path.map("#/profile").to(prepRoute);
+            Path.map("#/appointments").to(prepRoute);
+            Path.map("#/instructions").to(prepRoute);
+            Path.root("#/");
+
+            /// Initialize
+            ////////////////////////////////////////
+
+            $(function () {
+
+                // Start the router
+                Path.listen();
+
+                // whenever authentication happens send a popup
+                rootRef.onAuth(function globalOnAuth(authData) {
+
+                    if (authData) {
+                        showAlert({
+                            title: 'Logged in!',
+                         //   detail: 'Using ' + authData.provider,
+                            className: 'alert-success'
+                        });
+                    } else {
+                        showAlert({
+                            title: 'You are not logged in',
+                            detail: '',
+                            className: 'alert-info'
+                        });
+                    }
+
+                });
+
+            });
+
+        }(window.jQuery, window.Firebase, window.Path))
+    }//]]>
+
+
+
+    </script>
+
+</head>
+<body>
+
+<header class="navbar navbar-static-top navbar-inverse" id="top" role="banner">
+    <img id="logo" class="print" src="./images/logo.jpg">
+    <div class="container">
+        <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+            <ul class="nav navbar-nav">
+
+                <li id="login"> <a href="#/">Login</a>
+
+                </li>
+                <li id="logout"> <a href="#/logout">Logout</a>
+
+                </li>
+                <li id="instructionsLi"> <a id="instructions" href="#/instructions">INSTRUCTIONS</a>
+
+                </li>
+                <li id="appointmentsLi"> <a href="#/appointments">VIEW APPOINTMENTS</a>
+
+                </li>
+                <li id="booklinkLi"> <a id="bookLink" href="#/appointments">BOOK APPOINTMENTS</a>
+
+                </li>
+            </ul>
+        </nav>
+    </div>
+</header>
+<div id="formcontainer" class="container">
+    <!-- LOGIN -->
+    <form id="frmLogin" role="form">
+        <div class="heading">Welcome to the AITO appointment booking system</div>
+        <div>THE SYSTEM IS BEING UPDATED - PLEASE DONT TRY AND LOGIN</div>
+        <br><br>
+        <div class="form-group">
+            <label for="txtEmail">Email address</label>
+            <input type="email" class="form-control" id="txtEmail" placeholder="Enter email" name="email" />
+        </div>
+        <div class="form-group">
+            <label for="txtPass">Password</label>
+            <input type="password" class="form-control" id="txtPass" placeholder="Password" name="password" />
+        </div>
+        <button type="submit" id="loginbtn" class="btn btn-default btn-block">Login</button>
+        <br />
+        <br />
+
+    </form>
+    <!-- / LOGIN -->
+    <!-- LOGOUT -->
+    <form id="frmLogout" role="form">
+        <h2>You are logged out!</h2>
+
+    </form>
+    <!-- / LOGOUT -->
+    <!-- REGISTER -->
+    <form id="frmRegister" role="form">
+        <h2>Register</h2>
+
+        <div class="form-group">
+            <label for="txtRegEmail">Email address</label>
+            <input type="email" class="form-control" id="txtEmail" placeholder="Enter email" name="email" />
+        </div>
+        <div class="form-group">
+            <label for="txtRegPass">Password</label>
+            <input type="password" class="form-control" id="txtPass" placeholder="Password" name="password" />
+        </div>
+        <button type="submit" class="btn btn-default">Register</button>
+    </form>
+    <!-- / REGISTER -->
+    <!-- PROFILE -->
+    <form id="frmProfile" role="form">
+        <h2>Profile</h2>
+
+        <br />
+        <div class="form-group">
+            <label for="txtName">Name</label>
+            <input type="text" class="form-control" id="txtName" placeholder="Name" name="name" />
+        </div>
+        <div class="form-group">
+            <label for="userType">User Type (must be set!)</label>
+            <select id="userType" name="type" class="form-control">
+                <option></option>
+                <option>Agent</option>
+                <option>Supplier</option>
+            </select>
+        </div>
+        <div class="row times" ng-repeat="agent in agentsdata">
+        <button type="submit" class="btn btn-primary">Update</button>
+        </div>
+    </form>
+    <!-- / PROFILE -->
+    <!-- APPOINTMENTS -->
+    <form id="frmAppointments" role="form">
+            <INPUT TYPE="button" class="no-print" id="print-button2" onClick="window.print()" value="Click to Print">
+        <h2 id="userName">Your Appointments</h2>
+        <br />
+        <div id="appDetails" class="appDetails">Loading...</div>
+
+    </form>
+    <!-- / APPOINTMENTS -->
+    <!-- INSTRUCTIONS -->
+    <form id="frmInstructions" role="form">
+        <h2 id="insName"></h2>
+        <br />
+        <div>Click on "Book Appointments" above ^</div>
+        <div><br></div>
+        <div>Then click "View Appointments" to view or print them</div>
+        <div><br></div>
+        <div>NOTE: The company you book your appointment with can cancel it, just as you can cancel appointments booked by others with you...</div>
+    </form>
+    <!-- / INSTRUCTIONS -->
+    <hr />
+    <!-- ALERT BOX -->
+    <div id="alert" class="alert" role="alert">
+        <h4 id="alert-title">You are not logged in</h4>
+
+        <p id="alert-detail"></p>
+    </div>
+    <!-- / ALERT BOX -->
+</form>
+
+</body>
+
+</html>
+

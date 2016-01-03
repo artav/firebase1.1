@@ -1,0 +1,205 @@
+
+@media print
+{
+    .print{
+        display: block !important;
+    }
+    .no-print, .no-print *
+    {
+        display: none !important;
+    }
+}
+
+/* login form */
+
+form {
+    display: none;
+}
+
+/* Everything else */
+
+[ng-cloak]
+{
+    display: none !important;
+}
+
+
+.nav{
+    padding-left: 15%;
+}
+
+body 		 { padding-bottom:50px;
+    font-family: 'Roboto', sans-serif;
+}
+.times 	 { margin-bottom:10px; }
+
+#logo{
+    position: absolute;
+    float: left;
+    z-index: 200;
+    padding-top: 0px;
+    width: 17%;
+}
+
+.logogap{
+    margin-left:17%;
+    padding-left:210px;
+}
+
+.navbar-nav{
+    width:100%;
+
+}
+
+#logospacer{
+    position: absolute;
+    float: left;
+    z-index: 200;
+    padding-top: 0px;
+    width: 0%;
+}
+
+#formcontainer{
+    width: 50rem;
+    font-family: 'Roboto', sans-serif;
+    font-size: 2rem;
+    color: #555;
+}
+
+.heading{
+    font-family: 'Roboto', sans-serif;
+    font-size: 3rem;
+    color: #555;
+    text-align: center;
+    padding-bottom: 3rem;
+}
+
+.form-control{
+    font-size: 2rem;
+    line-height: 3rem;
+    height: 4rem;
+}
+
+#loginbtn{
+    background-color: #bbffbb;
+    margin-top: 4rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    font-size: 3rem;
+}
+
+.saveButton{
+    background-color: deepskyblue;
+    border: none;
+    color: #FFFFFF;
+    padding-left: 10px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.warning{
+    padding-top: 2em;
+    padding-bottom: 2em;
+    color: #ff2222;
+    font-style: strong;
+}
+
+#titleInput{
+    font-family: 'Roboto', sans-serif;
+}
+
+
+/* checkbox - each time slot */
+.time-slot 				{  }
+.time-slot input 	 {
+    display:none;
+
+}
+
+.time-slot label 	 {
+    padding:10px 10px;
+    color:#FFF;
+    cursor:pointer;
+    background:#EEE;
+    border-radius:5px;
+    transition:0.3s ease all;
+    -moz-transition:0.3s ease all;
+    -webkit-transition:0.3s ease all;
+    font-size: 13px; font-size: 0.9vw;
+}
+
+.time-slot input:checked ~ label {
+    /*background:#f2dede;*/
+    width: 100%;
+    cursor:not-allowed;
+    animation:flashBooked 0.5s ease;
+    -moz-animation:flashBooked 0.5s ease;
+    -webkit-animation:flashBooked 0.5s ease;
+}
+
+.time-slot input:not(:checked) ~ label {
+    background:#6AB074;
+    width: 100%;
+    animation:flashAvailable 0.5s ease;
+    -moz-animation:flashAvailable 0.5s ease;
+    -webkit-animation:flashAvailable 0.5s ease;
+}
+
+.booked-owner {
+    background: orange !important;
+    background-color: orange !important;
+    cursor:pointer !important;
+    disabled:false !important;
+    enabled: true !important;
+}
+
+.booked-ownerCB {
+    disabled:false !important;
+    enabled: true !important;
+}
+
+.disabled-row {
+    background: grey !important;
+    background-color: grey !important;
+    cursor:not-allowed;
+}
+
+.disabled-cell {
+    background:#eee !important;
+    cursor:not-allowed !important;
+    disabled:true;
+}
+
+.disabled-cellCB {
+    cursor:not-allowed !important;
+    disabled:true;
+}
+
+#print-button {
+    display: none;
+}
+
+@keyframes flashBooked {
+    0%, 100% { background:#f2dede; transform:scale(1); }
+    50% 		{ background:#F99090; transform:scale(1.5); }
+}
+@-moz-keyframes flashBooked {
+    0%, 100% { background:#f2dede; transform:scale(1); }
+    50% 		{ background:#F99090; transform:scale(1.5); }
+}
+@-webkit-keyframes flashBooked {
+    0%, 100% { background:#f2dede; transform:scale(1); }
+    50% 		{ background:#F99090; transform:scale(1.5); }
+}
+
+@keyframes flashAvailable {
+    0%, 100% { background:#6AB074; transform:scale(1); }
+    50% 		{ background:rgb(119, 218, 78); transform:scale(1.5); }
+}
+@-moz-keyframes flashAvailable {
+    0%, 100% { background:#6AB074; transform:scale(1); }
+    50% 		{ background:rgb(119, 218, 78); transform:scale(1.5); }
+}
+@-webkit-keyframes flashAvailable {
+    0%, 100% { background:#6AB074; transform:scale(1); }
+    50% 		{ background:rgb(119, 218, 78); transform:scale(1.5); }
+}

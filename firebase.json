@@ -1,0 +1,9 @@
+{
+  "firebase": "boiling-torch-6521",
+  "public": "public",
+  "ignore": [
+    "firebase.json",
+    "**/.*",
+    "**/node_modules/**"
+  ]
+}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Aito Appointments</title>
+
+    <!-- CSS -->
+    <!-- load Bootstrap and custom style.css -->
+    <link rel="stylesheet" href="./bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+
+    <!-- JS -->
+    <!-- load Angular, Firebase, Firebase Angular Library, and custom app.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.0/angular.min.js"></script>
+    <script src="https://cdn.firebase.com/js/client/1.1.1/firebase.js"></script>
+    <script src="https://cdn.firebase.com/libs/angularfire/0.8.0/angularfire.min.js"></script>
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="appsuppliersnew.js"></script>  <!-- Supplier booking agents -->
+</head>
+<body>
+<div class="container" ng-app="scheduleApp" ng-controller="mainController">
+    <header class="navbar navbar-static-top navbar-inverse" id="top" role="banner">
+        <div id="logospacer"> </div>
+        <div class="container">
+            <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+                <ul class="nav navbar-nav logogap">
+                    <li>
+                        <div> </div>
+                    </li>
+                    <li> <a href="./#/logout">Logout</a>
+
+                    </li>
+                    <li> <a id="instructions" href="#/instructions">INSTRUCTIONS</a>
+
+                    </li>
+                    <li> <a href="./#/appointments">VIEW APPOINTMENTS</a>
+
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div  ng-init="getMember(memId)">
+      <h3> Welcome {{userID}} </h3>
+    </div>
+    <p class="text-center">Click a green "available" time slot to book it with that company.<br><p class="text-center">Click a "BOOKED" appointment to cancel it.</p></p><br><p class="text-center">Lunch is 13:00 - 13:30</p>
+    <div class="row times" id="{{$index}}" ng-repeat="agent in agents" >
+
+        <div class="col-md-1"><h5>{{ agent.name }}</h5></div><div class="col-md-1 text-center" ng-repeat="slot in agent.slots" >
+
+         <span class="time-slot" >
+                <input type="checkbox" id="{{ agent.name }}.{{ slot }}" ng-click="booking($parent.$index,$index,slot.booked,agent.name,slot.time)" ng-model="slot.booked" ng-disabled="isDisabled($parent.$index,$index,slot.booked,userID,slot.bookedby)">
+                <label  for="{{ agent.name }}.{{ slot }}" ng-class="isBooked($parent.$index,$index,slot.booked,userID,slot.bookedby)" >{{ slot.time }}<br>
+                    <span ng-if="!slot.booked" >available</span>
+                    <span ng-if="slot.booked && userID != slot.bookedby" >TAKEN</span>
+                    <span ng-if="slot.booked && userID == slot.bookedby" >BOOKED</span>
+                </label>
+            </span>
+        </div>
+
+    </div>
+
+
+
+
+
+
+
+</div>
+</body>
+</html>
