@@ -47,7 +47,7 @@ angular.module('scheduleApp', ['firebase'])
 
                 function updateBookedRowCol(agents){
                     var line = 0;
-                    angular.forEach($scope.agents,function(agent,userID){
+                    angular.forEach(agents,function(agent,userID){
                         if(!agent){
                             return;
                         }

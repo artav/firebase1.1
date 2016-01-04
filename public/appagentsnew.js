@@ -38,10 +38,10 @@ angular.module('scheduleApp', ['firebase'])
                 var agentFb = $firebase(agentRef);
 
                 // sync as object
-                var syncObject = agentFb.$asObject();
+                var syncObjectAgents = agentFb.$asObject();
 
                 // three way data binding
-                syncObject.$bindTo($scope, 'agents');
+                syncObjectAgents.$bindTo($scope, 'agents');
 
                 // connect to firebase
 
@@ -50,12 +50,11 @@ angular.module('scheduleApp', ['firebase'])
                 var supplierFb = $firebase(supplierRef);
 
                 // sync as object
-                var syncObject2 = supplierFb.$asObject();
+                var syncObjectSuppliers = supplierFb.$asObject();
 
-                // three way data binding
-                syncObject2.$bindTo($scope, 'suppliers').then(function(){ //loop through suppliers qnd populqte bookedrow and booked column adequately.
+                function updateColRowArrays(bigarray){
                     var line = 0;
-                    angular.forEach($scope.suppliers,function(value,userID){
+                    angular.forEach(bigarray,function(value,userID){
                         if(!value){
                             return;
                         }
@@ -70,7 +69,17 @@ angular.module('scheduleApp', ['firebase'])
                         });
                         ++line;
                     });
+                }
+
+                // three way data binding
+                syncObjectSuppliers.$bindTo($scope, 'suppliers').then(function(){ //loop through suppliers qnd populqte bookedrow and booked column adequately.
+                    updateColRowArrays($scope.suppliers);
                 });
+
+                syncObjectSuppliers.$watch(function(){
+                    console.info('suppliers changed');
+                    updateColRowArrays($scope.suppliers);
+                })
             });
         } else {
             console.log("User is logged out");
