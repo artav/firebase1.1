@@ -48,7 +48,8 @@
         <div class="col-md-1"><h5>{{ supplier.name }}</h5></div><div class="col-md-1 text-center" ng-repeat="slot in supplier.slots" >
 
          <span class="time-slot" >
-                <input type="checkbox" id="{{ supplier.name }}.{{ slot }}" ng-click="booking($parent.$index,$index,slot.booked,supplier.name,slot.time)" ng-model="slot.booked" ng-disabled="isDisabled($parent.$index,$index,slot.booked,userID,slot.bookedby,slot.time)">
+                <input type="checkbox" id="{{ supplier.name }}.{{ slot }}" ng-click="booking($parent.$index,$index,slot.booked,supplier.name,slot.time)" ng-disabled="isDisabled($parent.$index,$index,slot.booked,userID,slot.bookedby,slot.time)">
+             <!--ng-model="slot.booked"-->
                 <label  for="{{ supplier.name }}.{{ slot }}" ng-class="isBooked($parent.$index,$index,slot.booked,userID,slot.bookedby,slot.time)" >{{ slot.time }}<br>
                     <span ng-if="!slot.booked" >available</span>
                     <span ng-if="slot.booked && userID != slot.bookedby" >TAKEN</span>

@@ -494,58 +494,58 @@
                     }
 
                     // Save default AGENT time slots based on global settings
-                        function updateAgent(name){
-                            var numAppointments =  (duration / interval);
-                            var slotsRef = agentsRef.child(name);
-                            slotsRef.set({name: name});
-                            var j = 0;
-                            for (j = 0; j < numAppointments; j++) {
-                                var totalMins = +(startHour * 60) + +startMin;  // '+' before a variable means treat it like a number
-                                var currentTotal = +totalMins + +(j*interval);
-                                var currentHours = Math.floor( currentTotal / 60);
-                                var currentMins = currentTotal % 60;
-                                if (currentMins == 0) currentMins = "00";  // if minutes = 0 then display it as 00
-                                var time = currentHours+":"+currentMins;
-                                var plainTime = "" + currentHours + currentMins;  // save time as a string with no ':'
-                                var plainNumTime = +plainTime; // makes the time a proper number for the key
-                                var appRef = slotsRef.child("slots/"+plainNumTime);
-                                if (plainNumTime >= 1300 && plainNumTime <= 1325){
-                                    appRef.set({
-                                        time: time, plainTime: plainTime, booked: true, bookedby: "BREAK"
-                                    });
-                                }
-                                else {appRef.set({
-                                    time: time, plainTime: plainTime, booked: false, bookedby: ""
-                                });}
+                    function updateAgent(name){
+                        var numAppointments =  (duration / interval);
+                        var slotsRef = agentsRef.child(name);
+                        slotsRef.set({name: name});
+                        var j = 0;
+                        for (j = 0; j < numAppointments; j++) {
+                            var totalMins = +(startHour * 60) + +startMin;  // '+' before a variable means treat it like a number
+                            var currentTotal = +totalMins + +(j*interval);
+                            var currentHours = Math.floor( currentTotal / 60);
+                            var currentMins = currentTotal % 60;
+                            if (currentMins == 0) currentMins = "00";  // if minutes = 0 then display it as 00
+                            var time = currentHours+":"+currentMins;
+                            var plainTime = "" + currentHours + currentMins;  // save time as a string with no ':'
+                            var plainNumTime = +plainTime; // makes the time a proper number for the key
+                            var appRef = slotsRef.child("slots/"+plainNumTime);
+                            if (plainNumTime >= 1300 && plainNumTime <= 1325){
+                                appRef.set({
+                                    time: time, plainTime: plainTime, booked: true, bookedby: "BREAK"
+                                });
                             }
+                            else {appRef.set({
+                                time: time, plainTime: plainTime, booked: false, bookedby: ""
+                            });}
+                        }
+                    }
+
+                    function updateSupplier(name){
+                        var numAppointments =  (duration / interval);
+                        var slotsRef = suppliersRef.child(name);
+                        slotsRef.set({name: name});
+                        var k = 0;
+                        for (k = 0; k < numAppointments; k++) {
+                            var totalMins = +(startHour * 60) + +startMin;  // '+' before a variable means treat it like a number
+                            var currentTotal = +totalMins + +(k*interval);
+                            var currentHours = Math.floor( currentTotal / 60);
+                            var currentMins = currentTotal % 60;
+                            if (currentMins == 0) currentMins = "00";  // if minutes = 0 then display it as 00
+                            var time = currentHours+":"+currentMins;
+                            var plainTime = "" + currentHours + currentMins;  // save time as a string with no ':'
+                            var plainNumTime = +plainTime; // makes the time a proper number for the key
+                            var appRef = slotsRef.child("slots/"+plainNumTime);
+                            if (plainNumTime >= 1300 && plainNumTime <= 1325){
+                                appRef.set({
+                                    time: time, plainTime: plainTime, booked: true, bookedby: "BREAK"
+                                });
+                            }
+                            else {appRef.set({
+                                time: time, plainTime: plainTime, booked: false, bookedby: ""
+                            });}
                         }
 
-                        function updateSupplier(name){
-                            var numAppointments =  (duration / interval);
-                            var slotsRef = suppliersRef.child(name);
-                            slotsRef.set({name: name});
-                            var k = 0;
-                            for (k = 0; k < numAppointments; k++) {
-                                var totalMins = +(startHour * 60) + +startMin;  // '+' before a variable means treat it like a number
-                                var currentTotal = +totalMins + +(k*interval);
-                                var currentHours = Math.floor( currentTotal / 60);
-                                var currentMins = currentTotal % 60;
-                                if (currentMins == 0) currentMins = "00";  // if minutes = 0 then display it as 00
-                                var time = currentHours+":"+currentMins;
-                                var plainTime = "" + currentHours + currentMins;  // save time as a string with no ':'
-                                var plainNumTime = +plainTime; // makes the time a proper number for the key
-                                var appRef = slotsRef.child("slots/"+plainNumTime);
-                                if (plainNumTime >= 1300 && plainNumTime <= 1325){
-                                    appRef.set({
-                                        time: time, plainTime: plainTime, booked: true, bookedby: "BREAK"
-                                    });
-                                }
-                                else {appRef.set({
-                                    time: time, plainTime: plainTime, booked: false, bookedby: ""
-                                });}
-                            }
-
-                        }
+                    }
 
 
                 });
@@ -625,7 +625,7 @@
                     if (authData) {
                         showAlert({
                             title: 'Logged in!',
-                         //   detail: 'Using ' + authData.provider,
+                            //   detail: 'Using ' + authData.provider,
                             className: 'alert-success'
                         });
                     } else {
@@ -641,7 +641,7 @@
             });
 
         }(window.jQuery, window.Firebase, window.Path))
-    }//]]>
+    }
 
 
 
@@ -734,13 +734,13 @@
             </select>
         </div>
         <div class="row times" ng-repeat="agent in agentsdata">
-        <button type="submit" class="btn btn-primary">Update</button>
+            <button type="submit" class="btn btn-primary">Update</button>
         </div>
     </form>
     <!-- / PROFILE -->
     <!-- APPOINTMENTS -->
     <form id="frmAppointments" role="form">
-            <INPUT TYPE="button" class="no-print" id="print-button2" onClick="window.print()" value="Click to Print">
+        <INPUT TYPE="button" class="no-print" id="print-button2" onClick="window.print()" value="Click to Print">
         <h2 id="userName">Your Appointments</h2>
         <br />
         <div id="appDetails" class="appDetails">Loading...</div>
@@ -766,9 +766,8 @@
         <p id="alert-detail"></p>
     </div>
     <!-- / ALERT BOX -->
-</form>
+</div>
 
 </body>
 
 </html>
-

@@ -2,18 +2,6 @@ angular.module('scheduleApp', ['firebase'])
 
     .controller('mainController', function($scope, $timeout, $firebase) {
 
-
-
-
-
-        /*userRef = baseRef.child('users').child(user.uid);
-        userRef.once('value', function (snap) {
-            var user = snap.val();
-            if (!user) {
-                return;
-            }
-        });*/
-
         var baseRef = new Firebase("https://boiling-torch-6521.firebaseio.com/");
 
         var bookedrow = [];
@@ -21,6 +9,8 @@ angular.module('scheduleApp', ['firebase'])
 
         $scope.bookedrow = bookedrow;
         $scope.bookedcol = bookedcol;
+        // Set the userID (name) of the logged in user in the scope so that it can be shown as a welcome
+        $scope.userID = window.userID;
 
 
         //console.log($scope);
@@ -31,23 +21,18 @@ angular.module('scheduleApp', ['firebase'])
         var logRef = baseRef.child('log');
         var authData = baseRef.getAuth();
         if (authData) {
-            id = authData.uid;
-            console.log(id);
+            id = authData.uid;//TODO what is all that no var statements?
             path = 'users/' + id;
             nameRef = baseRef.child(path);
             nameRef.on("value", function(snapshot) {
-                user = snapshot.val();
+                user = snapshot.val(); //TODO what is all that no var statements?
                 console.log(user);
                 userName = user.name;
                 console.log(userName);
                 userID = userName;  //set this programatically via login script eventualy
                 $scope.userID = userID;
 
-
-
-
                 // connect to firebase
-
                 var agentRef = baseRef.child('agents');
 
                 var agentFb = $firebase(agentRef);
@@ -95,14 +80,11 @@ angular.module('scheduleApp', ['firebase'])
         //alter the scope object when a booking is made
         //////////////////////////////////////////////////////////////////////
 
-
-
-
         $scope.booking = function(rowindex,colindex,booked,user,time) {
             console.log('CLICKED- '+ booked + ' ' + user + ' ' + time);
             var shortTime = time.replace(":", "");
 
-            if (booked == true) {
+            if (!booked) {
                 $timeout(function() {
                     $scope['agents'][userID]['slots'][shortTime]['booked'] = true;
                     $scope['agents'][userID]['slots'][shortTime]['bookedby'] = user;
@@ -112,17 +94,15 @@ angular.module('scheduleApp', ['firebase'])
                     bookedcol[colindex] = true;
 
                     // Save to log
-                    logRef.push({
+                    /*logRef.push({
                         created: Firebase.ServerValue.TIMESTAMP,
                         action: "book",
                         slot: shortTime,
                         bookedby: userID,
                         bookedwith: user
-                    });
+                    });*/
                 }, 0);
-            }
-
-            if (booked == false) {
+            }else{
                 $timeout(function() {
                     $scope['agents'][userID]['slots'][shortTime]['booked'] = false;
                     $scope['agents'][userID]['slots'][shortTime]['bookedby'] = "";
@@ -132,13 +112,13 @@ angular.module('scheduleApp', ['firebase'])
                     bookedcol[colindex] = false;
 
                     // Save to log
-                    logRef.push({
+                    /*logRef.push({
                         created: Firebase.ServerValue.TIMESTAMP,
                         action: "UNBOOK",
                         slot: shortTime,
                         bookedby: userID,
                         bookedwith: user
-                    });
+                    });*/
                 }, 0);
             }
         };
@@ -172,11 +152,9 @@ angular.module('scheduleApp', ['firebase'])
                 if (bool) {
                     return "disabled-cell";
                 }
-
         };
 
         $scope.isBookedCB = function isBooked(rowindex,colindex,bool,user,bookedby) {
-            //console.log(rowindex + "|" + bool + "|" + user + "|" + bookedby);
             if (bool && user == bookedby) {
                // $scope.bookedrow = bookedrow;
                 return "booked-ownerCB";
@@ -198,27 +176,14 @@ angular.module('scheduleApp', ['firebase'])
                // $scope.bookedrow = bookedrow;
                 return false;
             }
-            if (bookedrow[rowindex] && user != bookedby){
+            if (bookedrow[rowindex] && (user != bookedby)){
                 return true;
             }
-            if (bookedcol[colindex] && user != bookedby){
+            if (bookedcol[colindex] && (user != bookedby)){
                 return true;
             }
             if (bool){
                 return true;
-            } //
+            }
         };
-
-
-
-
-
-        // Set the userID (name) of the logged in user in the scope so that it can be shown as a welcome
-        $scope.userID = window.userID;
-        //console.log($scope);
-
-
-
     });
-
-
