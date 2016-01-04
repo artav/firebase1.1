@@ -47,6 +47,16 @@ angular.module('scheduleApp', ['firebase'])
 
                 function updateBookedRowCol(agents){
                     var line = 0;
+
+                    //reset the arrays to false.
+                    angular.forEach(bookedrow,function(value,key){
+                        bookedrow[key] = false;
+                    });
+
+                    angular.forEach(bookedcol,function(value,key){
+                        bookedcol[key] = false;
+                    });
+
                     angular.forEach(agents,function(agent,userID){
                         if(!agent){
                             return;
