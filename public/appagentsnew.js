@@ -53,21 +53,31 @@ angular.module('scheduleApp', ['firebase'])
                 var syncObjectSuppliers = supplierFb.$asObject();
 
                 function updateColRowArrays(bigarray){
-                    var line = 0;
-                    angular.forEach(bigarray,function(value,userID){
+                    //reset the arrays to false.
+                    angular.forEach(bookedrow,function(value,key){
+                        bookedrow[key] = false;
+                    });
+
+                    angular.forEach(bookedcol,function(value,key){
+                        bookedcol[key] = false;
+                    });
+
+                    var row = 0;
+                    angular.forEach(bigarray,function(value,userID){ //loop through the columns
                         if(!value){
                             return;
                         }
                         var slots = value.slots;
                         var col = 0;
-                        angular.forEach(slots,function(slotData,shortTime){
+
+                        angular.forEach(slots,function(slotData,shortTime){ //loop through the row.
                             if(slotData.booked && slotData.bookedby === user.name){
                                 bookedcol[col] = true;
-                                bookedrow[line] = true;
+                                bookedrow[row] = true;
                             }
                             ++col;
                         });
-                        ++line;
+                        ++row;
                     });
                 }
 
